@@ -1,0 +1,5 @@
+echo -e "Building kvs in release mode"
+mkdir -p release && cd $_
+cmake ..
+make
+echo -e "Written Arom Zinhart DeGraca"
