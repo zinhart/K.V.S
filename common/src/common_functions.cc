@@ -15,3 +15,12 @@ int sendall(int s, char *buf, int *len)
   *len = total; // return number actually sent here
   return n == -1 ?- 1 : 0; // return -1 on failure, 0 on success
 }
+// get sockaddr, IPv4 or IPv6:
+void *get_in_addr(struct sockaddr *sa)
+{
+  if (sa->sa_family == AF_INET)
+  {
+	return &(((struct sockaddr_in*)sa)->sin_addr);
+  }
+  return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}

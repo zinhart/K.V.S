@@ -9,40 +9,22 @@
 #include <arpa/inet.h>
 #include <iostream>
 #include <cstdlib>
-#define PORT 3000
 int main(int argc, char **argv)
 {
-  if(argc <= 1)
+  if(argc <= 4)
   {
-	std::cout<<"Usage ./server -p <PORTNUM> -m <MESSAGELENGTH> -c <MAXCONNECTIONS>\n";
+	std::cout<<"Usage ./server <PORTNUM> <MESSAGELENGTH> <MAXCONNECTIONS>\n";
 	std::exit(1);
   }
   else
   {
-	std::uint32_t portnum, max_connections, message_length;
+	std::uint32_t port, max_connections, message_length;
 	std::int32_t i, j;
 	int invalid_option;
-	for(std::uint32_t i = 1, invalid_option = 0; i < argc; ++i)
-	{
-	  if(strcmp(argv[i],"-p") == 0)
-	  {
- 		portnum = std::atoi(argv[i + 1]);	
-	  }
-	  else if(strcmp(argv[i],"-c") == 0)
-	  {
- 		max_connections = std::atoi(argv[i + 1]);	
-	  }
-	  else if(strcmp(argv[i],"-m") == 0)
-	  {
- 		max_connections = std::atoi(argv[i + 1]);	
-	  }
-	  else
-		invalid_option = 1;
-	  if(invalid_option == 1)
-		std::exit(1);
-
-	}
-	std::cout<<portnum<<" "<<max_connections<<" "<<message_length<<"\n";
+ 	port = std::atoi(argv[1]);	
+ 	message_length = std::atoi(argv[2]);	
+ 	max_connections = std::atoi(argv[3]);	
+	std::cout<<port<<" "<<max_connections<<" "<<message_length<<"\n";
    
 	fd_set master; // master file descriptor list
 	fd_set read_fds; // temp file descriptor list for select()
@@ -77,7 +59,7 @@ int main(int argc, char **argv)
 	// bind
 	myaddr.sin_family = AF_INET;
 	myaddr.sin_addr.s_addr = INADDR_ANY;
-	myaddr.sin_port = htons(PORT);
+	myaddr.sin_port = htons(port);
 	memset(&(myaddr.sin_zero), '\0', 8);
 	if (bind(listener, (struct sockaddr *)&myaddr, sizeof(myaddr)) == -1) 
 	{
@@ -96,83 +78,81 @@ int main(int argc, char **argv)
 	FD_SET(listener, &master);
 	// keep track of the biggest file descriptor
 	fdmax = listener; // so far, it’s this one
-  }
-  
-  
-  /*
-  // main loop
-  for(;;) 
-  {
-	read_fds = master; // copy it
-	if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) 
+  	// main loop
+	for(;;) 
 	{
-	  perror("select");
-	  exit(1);
-	}
-	// run through the existing connections looking for data to read
-	for(i = 0; i <= fdmax; i++) 
-	{
-	  if (FD_ISSET(i, &read_fds)) 
-	  { // we got one!!
-		if (i == listener) 
-		{
-		  // handle new connections
-		  addrlen = sizeof(remoteaddr);
-		  if ((newfd = accept(listener, (struct sockaddr *)&remoteaddr, &addrlen)) == -1) 
+	  read_fds = master; // copy it
+	  if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) 
+	  {
+		perror("select");
+		exit(1);
+	  }
+	  // run through the existing connections looking for data to read
+	  for(i = 0; i <= fdmax; i++) 
+	  {
+		if (FD_ISSET(i, &read_fds)) 
+		{ // we got one!!
+		  if (i == listener) 
 		  {
-			perror("accept");
-		  } 
-		  else 
-		  {
-			FD_SET(newfd, &master); // add to master set
-			if (newfd > fdmax) 
+			// handle new connections
+			addrlen = sizeof(remoteaddr);
+			if ((newfd = accept(listener, (struct sockaddr *)&remoteaddr, &addrlen)) == -1) 
 			{
-			  // keep track of the maximum
-			  fdmax = newfd;
-			}
-			printf("selectserver: new connection from %s on socket %d\n", inet_ntoa(remoteaddr.sin_addr), newfd);
-		  }
-		} 
-		else 
-		{
-		  // handle data from a client
-		  if ((nbytes = recv(i, buf, sizeof(buf), 0)) <= 0) 
-		  {
-			// got error or connection closed by client
-			if (nbytes == 0) 
-			{
-			  // connection closed
-			  printf("selectserver: socket %d hung up\n", i);
+			  perror("accept");
 			} 
 			else 
 			{
-			  perror("recv");
+			  FD_SET(newfd, &master); // add to master set
+			  if (newfd > fdmax) 
+			  {
+				// keep track of the maximum
+				fdmax = newfd;
+			  }
+			  printf("selectserver: new connection from %s on socket %d\n", inet_ntoa(remoteaddr.sin_addr), newfd);
 			}
-			close(i); // bye!
-			FD_CLR(i, &master); // remove from master set
 		  } 
 		  else 
 		  {
-			// we got some data from a client
-			for(j = 0; j <= fdmax; j++) 
+			// handle data from a client
+			if ((nbytes = recv(i, buf, sizeof(buf), 0)) <= 0) 
 			{
-			  // send to everyone!
-			  if (FD_ISSET(j, &master)) 
+			  // got error or connection closed by client
+			  if (nbytes == 0) 
 			  {
-				// except the listener and ourselves
-				if (j != listener && j != i) 
+				// connection closed
+				printf("selectserver: socket %d hung up\n", i);
+			  } 
+			  else 
+			  {
+				perror("recv");
+			  }
+			  close(i); // bye!
+			  FD_CLR(i, &master); // remove from master set
+			} 
+			else 
+			{
+			  // we got some data from a client
+			  for(j = 0; j <= fdmax; j++) 
+			  {
+				// send to everyone!
+				if (FD_ISSET(j, &master)) 
 				{
-				  if (send(j, buf, nbytes, 0) == -1) 
+				  // except the listener and ourselves
+				  if (j != listener && j != i) 
 				  {
-					perror("send");
+					if (send(j, buf, nbytes, 0) == -1) 
+					{
+					  perror("send");
+					}
 				  }
 				}
 			  }
 			}
-		  }
-		}
-	  }
-	}
-  }*/
+		  }//end handle data from client
+		}//end ne incoming connection
+	  }//end loop file descriptors
+	}//end for
+  }
+  
   return 0;
-}
+} 

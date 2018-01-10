@@ -9,18 +9,17 @@ endif ()
 
 option(BuildShared "BuildShared" OFF)
 
-if (BuildShared)
-  set(LIB_TYPE SHARED)
-else ()
-  set(LIB_TYPE STATIC)
-endif()
+#if (BuildShared)
+#  set(LIB_TYPE SHARED)
+#else ()
+#  set(LIB_TYPE STATIC)
+#endif()
 
 set(CMAKE_CXX_STANDARD 11) 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "-Wall -std=c++11 ${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -pedantic -fno-omit-frame-pointer -fno-inline-functions")
-
 
 
 add_subdirectory(common)
