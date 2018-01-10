@@ -58,16 +58,115 @@ server::server(std::int32_t prt, std::uint32_t max_connecs, std::uint32_t msg_le
   FD_SET(listener, &master);
   // keep track of the biggest file descriptor
   fdmax = listener; // so far, it’s this one
-
-}
-std::int32_t server::send()
-{
-}
-std::int32_t server::recieve()
-{
 }
 void server::run()
 {
+		std::int32_t i;
+	std::int32_t j;
+
+	std::int32_t newfd; // newly accept()ed socket descriptor
+	// buffer for client data is shared_ptr
+	std::uint32_t nbytes;
+	std::int32_t yes = 1;
+	// for setsockopt() SO_REUSEADDR, below
+	unsigned int addrlen;
+ 	// main loop
+	for(;;) 
+	{
+	  read_fds = master; // copy it
+	  if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) 
+	  {
+		perror("select");
+		exit(1);
+	  }
+	  // run through the existing connections looking for data to read
+	  for(i = 0; i <= fdmax; i++) 
+	  {
+		if (FD_ISSET(i, &read_fds)) 
+		{ // we got one!!
+		  if (i == listener) 
+		  {
+			// handle new connections
+			addrlen = sizeof(remoteaddr);
+			if ((newfd = accept(listener, (struct sockaddr *)&remoteaddr, &addrlen)) == -1) 
+			{
+			  perror("accept");
+			} 
+			else 
+			{
+			  FD_SET(newfd, &master); // add to master set
+			  if (newfd > fdmax) 
+			  {
+				// keep track of the maximum
+				fdmax = newfd;
+			  }
+			  printf("selectserver: new connection from %s on socket %d\n", inet_ntoa(remoteaddr.sin_addr), newfd);
+			}
+		  } 
+		  else 
+		  {
+			// handle data from a client
+			if ((nbytes = recv(i, message_buffer.get(), sizeof(message_buffer.get()), 0)) <= 0) 
+			{
+			  // got error or connection closed by client
+			  if (nbytes == 0) 
+			  {
+				// connection closed
+				printf("selectserver: socket %d hung up\n", i);
+			  } 
+			  else 
+			  {
+				perror("recv");
+			  }
+			  close(i); // bye!
+			  FD_CLR(i, &master); // remove from master set
+			} 
+			else 
+			{
+			  // we got some data from a client
+			  for(j = 0; j <= fdmax; j++) 
+			  {
+				// send to everyone!
+				if (FD_ISSET(j, &master)) 
+				{
+				  // except the listener and ourselves
+				  if (j != listener && j != i) 
+				  {
+					if (send(j, message_buffer.get(), nbytes, 0) == -1) 
+					{
+					  perror("send");
+					}
+				  }
+				}
+			  }
+			}
+		  }//end handle data from client
+		}//end ne incoming connection
+	  }//end loop file descriptors
+	}//end for
+
+}
+std::int32_t server::send_data()
+{
+}
+std::int32_t server::recieve_data(const & std::int32_t i, const & std::int32_t j, std::uint32_t n_bytes)
+{
+			if ((n_bytes = recv(i, message_buffer.get(), sizeof(message_buffer.get()), 0)) <= 0) 
+			{
+			  // got error or connection closed by client
+			  if (n_bytes == 0) 
+			  {
+				// connection closed
+				printf("selectserver: socket %d hung up\n", i);
+			  } 
+			  else 
+			  {
+				perror("recv");
+			  }
+			  close(i); // bye!
+			  FD_CLR(i, &master); // remove from master set
+			} 
+
 }
 int main(int argc, char **argv)
 {
@@ -82,6 +181,7 @@ int main(int argc, char **argv)
 	std::int32_t i, j;
 	int invalid_option;
 	server s(std::atoi(argv[1]), std::atoi(argv[2]),std::atoi(argv[3]));
+	s.run();
 /* 	port = std::atoi(argv[1]);	
  	message_length = std::atoi(argv[2]);	
  	max_connections = std::atoi(argv[3]);	

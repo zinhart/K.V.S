@@ -26,9 +26,9 @@ class server
 	std::shared_ptr<char> message_buffer;
   public:
 	server(std::int32_t port, std::uint32_t max_connections, std::uint32_t message_length);
-	void run();;
-	std::int32_t send();
-	std::int32_t recieve();
+	void run();
+	std::int32_t send_data();
+	std::int32_t recieve_data(const & std::int32_t i, const & std::int32_t j, std::uint32_t n_bytes);
 };
 std::int32_t create_socket(std::int32_t domain, std::int32_t type, std::int32_t protocol);
 std::int32_t set_socket_reusable(int socket, int level, int option_name, const void * option_value, socklen_t option_length);
