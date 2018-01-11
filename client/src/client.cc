@@ -36,11 +36,11 @@ int main(int argc, char *argv[])
 	std::exit(1);
   }
   std::int32_t error, i;
-  std::uint16_t port;
+  //std::uint16_t port;
   //ACTIONS action = ACTIONS::GET;
-  char * hostname, * action,* key, * value;
+  char * hostname,* port,* action,* key, * value;
   hostname = argv[1];
-  port = std::atoi(argv[2]);
+  port = argv[2];
   action = argv[3];
   key = argv[4];
   value = (argc <= 4) ? NULL : argv[5];
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
   memset(&hints, 0, sizeof(hints) );
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
-  if ((rv = getaddrinfo(hostname, PORT, &hints, &servinfo)) != 0) 
+  if ((rv = getaddrinfo(hostname, port, &hints, &servinfo)) != 0) 
   {
 	//std::cerr<<"getaddrinfo: %s\n", gai_strerror(rv)<<"\n";
 	fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
