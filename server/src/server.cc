@@ -1,10 +1,10 @@
 #include "server.hh"
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<unistd.h>
-#include<sys/types.h>
-#include<sys/socket.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <iostream>
@@ -40,7 +40,6 @@ server::server(std::uint32_t prt, std::uint32_t max_connecs, std::uint32_t msg_l
   myaddr.sin_family = AF_INET;
   myaddr.sin_addr.s_addr = INADDR_ANY;
   myaddr.sin_port = htons(port);
-  std::cout<<"sin_port: "<<myaddr.sin_port<<"\n";
   memset(&(myaddr.sin_zero), '\0', 8);
   if (bind(listener, (struct sockaddr *)&myaddr, sizeof(myaddr)) == -1) 
   {
@@ -164,8 +163,8 @@ int main(int argc, char **argv)
  	port = std::atoi(argv[1]);	
  	message_length = std::atoi(argv[2]);	
  	max_connections = std::atoi(argv[3]);	
-    server s(port, max_connections, message_length );
-	s.run();
+ 	server s(port, max_connections, message_length );
+		s.run();
   }
   
   return 0;
