@@ -1,5 +1,6 @@
 //#include "common"
-#include<iostream>
+#include <iostream>
+#include <memory>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -31,12 +32,12 @@ int main(int argc, char *argv[])
 
   if(argc <= 3)
   {
-	std::cerr<<"USAGE: ./client <hostname> <portnum> <actions>\n";
+	std::cerr<<"USAGE: ./client <hostname> <portnum> <message_length> <actions>\n";
 	std::cerr<<"ACTIONS: <GET> key\n<PUT> <key> <value>\n<Delete> <key> <value>\n";
 	std::exit(1);
   }
   std::int32_t error, i;
-  //std::uint16_t port;
+  std::uint32_t message_length;
   //ACTIONS action = ACTIONS::GET;
   char * hostname,* port,* action,* key, * value;
   hostname = argv[1];
@@ -47,7 +48,9 @@ int main(int argc, char *argv[])
 
 
   int sockfd, numbytes;  
+		
   char buf[MAXDATASIZE];
+		std::shared_ptr<char> message_buffer;
   struct addrinfo hints, *servinfo, *p;
   int rv;
   char s[INET6_ADDRSTRLEN];
