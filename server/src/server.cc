@@ -113,7 +113,7 @@ void server::run()
 			  if (nbytes == 0) 
 			  {
 				// connection closed
-				printf("selectserver: socket %d hung up\n", i);
+				printf("selectserver: socket %d hung up\n", current_file_descriptor);
 			  } 
 			  else 
 			  {
@@ -132,8 +132,9 @@ void server::run()
 				if (FD_ISSET(j, &master)) 
 				{
 				  //j == litsener is the master socket j==i is the current open connection
-				  if (j == listener && j == current_file_descriptor) 
+				  if (/*j == listener &&*/ j == current_file_descriptor) 
 				  {
+														std::cout<<"Here in send\n";
 					if (send(j, message_buffer.get(), nbytes, 0) == -1) 
 					{
 					  perror("send");

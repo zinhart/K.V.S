@@ -37,21 +37,24 @@ int main(int argc, char *argv[])
 	std::exit(1);
   }
   std::int32_t error, i;
+		std::shared_ptr<char> message_buffer;
   std::uint32_t message_length;
   //ACTIONS action = ACTIONS::GET;
   char * hostname,* port,* action,* key, * value;
   hostname = argv[1];
   port = argv[2];
-  action = argv[3];
-  key = argv[4];
-  value = (argc <= 4) ? NULL : argv[5];
+		message_length = std::atoi(argv[3]);
+  action = argv[4];
+  key = argv[5];
+  value = (argc <= 5) ? NULL : argv[6];
+		message_buffer = std::shared_ptr<char>(new char[message_length],std::default_delete<char[]>());
 
 
-  int sockfd, numbytes;  
+
+		std::int32_t sockfd, numbytes;  
 		
   char buf[MAXDATASIZE];
-		std::shared_ptr<char> message_buffer;
-  struct addrinfo hints, *servinfo, *p;
+		  struct addrinfo hints, *servinfo, *p;
   int rv;
   char s[INET6_ADDRSTRLEN];
   
@@ -90,22 +93,24 @@ int main(int argc, char *argv[])
   freeaddrinfo(servinfo); // all done with this structure
   if(strcmp(action,"GET") == 0)
   {
-	//send key
+	//send command and key
 	if( (numbytes = sendto(sockfd, "GET", strlen("GET"), 0, p->ai_addr, p->ai_addrlen)) == -1)
 	{
 	  std::cerr<<"sendto\n";
 	  std::exit(1);
-	}	  
+	}	
 	//if key is existing
 	
 	//recieve value
-	if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) 
+	if ((numbytes = recv(sockfd, buf, message_length-1, 0)) == -1) 
 	{
 	  std::cerr<<"recv\n";
 	  std::exit(1);
 	}
-	buf[numbytes] = '\0';
-	printf("client: received '%s'\n",buf);
+	message_buffer.get()[numbytes] = '\0';
+
+	//buf[numbytes] = '\0';
+	printf("client: received '%s'\n", message_buffer.get());
   }
   else if(strcmp(action,"PUT") == 0)
   {
