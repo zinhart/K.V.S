@@ -62,7 +62,7 @@ server::server(std::uint32_t prt, std::uint32_t max_connecs, std::uint32_t msg_l
 }
 void server::run()
 {
-	std::int32_t i;
+	std::int32_t current_file_descriptor;
 	std::int32_t j;
 
 	std::int32_t newfd; // newly accept()ed socket descriptor
@@ -81,11 +81,11 @@ void server::run()
 		exit(1);
 	  }
 	  // run through the existing connections looking for data to read
-	  for(i = 0; i <= fdmax; i++) 
+	  for(current_file_descriptor = 0; current_file_descriptor <= fdmax; ++current_file_descriptor) 
 	  {
-		if (FD_ISSET(i, &read_fds)) 
+		if (FD_ISSET(current_file_descriptor, &read_fds)) 
 		{ // we got one!!
-		  if (i == listener) 
+		  if (current_file_descriptor == listener) 
 		  {
 			// handle new connections
 			addrlen = sizeof(remoteaddr);
@@ -106,9 +106,8 @@ void server::run()
 		  } 
 		  else 
 		  {
-			std::cout<<"IN handle data from client\n";
-			// handle data from a client exit
-			if ((nbytes = recv(i, message_buffer.get(), sizeof(message_buffer.get()), 0)) <= 0) 
+			// when recv returns <= 0 data stopped being recieved or their was an error with recv
+			if ((nbytes = recv(current_file_descriptor, message_buffer.get(), sizeof(message_buffer.get()), 0)) <= 0) 
 			{
 			  // got error or connection closed by client
 			  if (nbytes == 0) 
@@ -120,8 +119,8 @@ void server::run()
 			  {
 				perror("recv");
 			  }
-			  close(i); // bye!
-			  FD_CLR(i, &master); // remove from master set
+			  close(current_file_descriptor); // bye!
+			  FD_CLR(current_file_descriptor, &master); // remove from master set
 			} 
 			else 
 			{
@@ -133,7 +132,7 @@ void server::run()
 				if (FD_ISSET(j, &master)) 
 				{
 				  //j == litsener is the master socket j==i is the current open connection
-				  if (j == listener && j == i) 
+				  if (j == listener && j == current_file_descriptor) 
 				  {
 					if (send(j, message_buffer.get(), nbytes, 0) == -1) 
 					{

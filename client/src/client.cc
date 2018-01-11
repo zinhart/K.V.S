@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 	//send key
 	if( (numbytes = sendto(sockfd, "GET", strlen("GET"), 0, p->ai_addr, p->ai_addrlen)) == -1)
 	{
-	  perror("sendto");
+	  std::cerr<<"sendto\n";
 	  std::exit(1);
 	}	  
 	//if key is existing
@@ -98,8 +98,8 @@ int main(int argc, char *argv[])
 	//recieve value
 	if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) 
 	{
-	  perror("recv");
-	  exit(1);
+	  std::cerr<<"recv\n";
+	  std::exit(1);
 	}
 	buf[numbytes] = '\0';
 	printf("client: received '%s'\n",buf);
