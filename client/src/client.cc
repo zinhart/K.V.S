@@ -88,7 +88,11 @@ int main(int argc, char *argv[])
   if(strcmp(action,"GET") == 0)
   {
 	//send key
-	
+	if( (numbytes = sendto(sockfd, "GET", strlen("GET"), 0, p->ai_addr, p->ai_addrlen)) == -1)
+	{
+	  perror("sendto");
+	  std::exit(1);
+	}	  
 	//if key is existing
 	
 	//recieve value

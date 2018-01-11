@@ -106,7 +106,8 @@ void server::run()
 		  } 
 		  else 
 		  {
-			// handle data from a client
+			std::cout<<"IN handle data from client\n";
+			// handle data from a client exit
 			if ((nbytes = recv(i, message_buffer.get(), sizeof(message_buffer.get()), 0)) <= 0) 
 			{
 			  // got error or connection closed by client
@@ -124,14 +125,15 @@ void server::run()
 			} 
 			else 
 			{
+			  printf("Data from client: %s \n", message_buffer.get());
 			  // we got some data from a client
 			  for(j = 0; j <= fdmax; j++) 
 			  {
-				// send to everyone!
+				//if the current file descriptor (j) is in the master set
 				if (FD_ISSET(j, &master)) 
 				{
-				  // except the listener and ourselves
-				  if (j != listener && j != i) 
+				  //j == litsener is the master socket j==i is the current open connection
+				  if (j == listener && j == i) 
 				  {
 					if (send(j, message_buffer.get(), nbytes, 0) == -1) 
 					{
