@@ -106,8 +106,7 @@ void server::run()
 		  else 
 		  {
 			// when recv returns <= 0 data stopped being recieved or their was an error with recv
-			std::cout<<
-			if ((nbytes = recv(current_file_descriptor, message_buffer.get(), strlen(message_buffer.get()) - 1, 0)) <= 0) 
+			if ((nbytes = recv(current_file_descriptor, message_buffer.get(), sizeof(message_buffer.get()), 0)) <= 0) 
 			{
 			  // got error or connection closed by client
 			  if (nbytes == 0) 
@@ -151,12 +150,11 @@ void server::run()
 				//if the current file descriptor (j) is in the master set
 				if (FD_ISSET(j, &master)) 
 				{
-				  std::cout<<"here\n";
 				  //j == litsener is the master socket j==i is the current open connection
 				  if (j == current_file_descriptor) 
 				  {
 					std::cout<<"Here in send\n";
-					if (send(j, message_buffer.get(), sizeof(message_buffer.get()), 0) == -1) 
+					if (send(j, message_buffer.get(), nbytes, 0) == -1) 
 					{
 					  perror("send");
 					}

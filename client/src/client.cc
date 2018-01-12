@@ -39,10 +39,8 @@ int main(int argc, char *argv[])
   std::int32_t error, i;
   std::string packet_buffer;
   std::uint32_t packet_length;
-  //ACTIONS action = ACTIONS::GET;
   
   char * host_name, * port, * cmd, * key, * value;
-  //std::string hostname, port, cmd, key, value;
   host_name = argv[1];
   port = argv[2];
   cmd = argv[3];
@@ -84,14 +82,13 @@ int main(int argc, char *argv[])
   }
   inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
   printf("client: connecting to %s\n", s);
-  std::cout<<"Here\n";
   std::uint32_t size = 1 + strlen(cmd) + strlen(key) + (value == NULL) ? 0 : strlen(value);
   char packet[size];
   strcpy(packet,cmd);
   strcpy(packet+ strlen(cmd), key);
   (value == NULL) ? 0  : strcpy(packet+ strlen(key), value) ; 
   freeaddrinfo(servinfo); // all done with this structur
-  printf("packet: %s\n %s \n %s \n length %d\n", packet, cmd, key,strlen(packet));
+  printf("packet: %s %s %s length %d\n", packet, cmd, key,strlen(packet));
   //send command, key, and possibly value
   if( (numbytes = sendto(sockfd, packet, strlen(packet), 0, p->ai_addr, p->ai_addrlen)) == -1)
   {
