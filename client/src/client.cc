@@ -1,5 +1,6 @@
 //#include "common"
 #include <iostream>
+#include <algorithm>
 #include <memory>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,42 +27,35 @@ void *get_in_addr(struct sockaddr *sa)
   }
   return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
-enum class ACTIONS : std::uint8_t {DEFAULT = 0, GET, PUT, DELETE};
 int main(int argc, char *argv[])
 {
 
-  if(argc <= 3)
+  if(argc <= 4)
   {
-	std::cerr<<"USAGE: ./client <hostname> <portnum> <message_length> <actions>\n";
+	std::cerr<<"USAGE: ./client <hostname> <portnum> <cmds>\n";
 	std::cerr<<"ACTIONS: <GET> key\n<PUT> <key> <value>\n<Delete> <key> <value>\n";
 	std::exit(1);
   }
   std::int32_t error, i;
-		std::shared_ptr<char> message_buffer;
-  std::uint32_t message_length;
+  std::string packet_buffer;
+  std::uint32_t packet_length;
   //ACTIONS action = ACTIONS::GET;
-  char * hostname,* port,* action,* key, * value;
-  hostname = argv[1];
+  
+  char * host_name, * port, * cmd, * key, * value;
+  //std::string hostname, port, cmd, key, value;
+  host_name = argv[1];
   port = argv[2];
-		message_length = std::atoi(argv[3]);
-  action = argv[4];
-  key = argv[5];
-  value = (argc <= 5) ? NULL : argv[6];
-		message_buffer = std::shared_ptr<char>(new char[message_length],std::default_delete<char[]>());
-
-
-
-		std::int32_t sockfd, numbytes;  
-		
-  char buf[MAXDATASIZE];
-		  struct addrinfo hints, *servinfo, *p;
+  cmd = argv[3];
+  key = argv[4];
+  value = (argc <= 4) ? NULL : argv[5];
+  std::int32_t sockfd, numbytes;  		
+  struct addrinfo hints, *servinfo, *p;
   int rv;
   char s[INET6_ADDRSTRLEN];
-  
   memset(&hints, 0, sizeof(hints) );
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
-  if ((rv = getaddrinfo(hostname, port, &hints, &servinfo)) != 0) 
+  if ((rv = getaddrinfo(host_name, port, &hints, &servinfo)) != 0) 
   {
 	//std::cerr<<"getaddrinfo: %s\n", gai_strerror(rv)<<"\n";
 	fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
@@ -90,44 +84,28 @@ int main(int argc, char *argv[])
   }
   inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
   printf("client: connecting to %s\n", s);
-  freeaddrinfo(servinfo); // all done with this structure
-  if(strcmp(action,"GET") == 0)
+  std::cout<<"Here\n";
+  std::uint32_t size = 1 + strlen(cmd) + strlen(key) + (value == NULL) ? 0 : strlen(value);
+  char packet[size];
+  strcpy(packet,cmd);
+  strcpy(packet+ strlen(cmd), key);
+  (value == NULL) ? 0  : strcpy(packet+ strlen(key), value) ; 
+  freeaddrinfo(servinfo); // all done with this structur
+  printf("packet: %s\n %s \n %s \n length %d\n", packet, cmd, key,strlen(packet));
+  //send command, key, and possibly value
+  if( (numbytes = sendto(sockfd, packet, strlen(packet), 0, p->ai_addr, p->ai_addrlen)) == -1)
   {
-	//send command and key
-	if( (numbytes = sendto(sockfd, "GET", strlen("GET"), 0, p->ai_addr, p->ai_addrlen)) == -1)
-	{
-	  std::cerr<<"sendto\n";
-	  std::exit(1);
-	}	
-	//if key is existing
-	
-	//recieve value
-	if ((numbytes = recv(sockfd, buf, message_length-1, 0)) == -1) 
-	{
-	  std::cerr<<"recv\n";
-	  std::exit(1);
-	}
-	message_buffer.get()[numbytes] = '\0';
-
-	//buf[numbytes] = '\0';
-	printf("client: received '%s'\n", message_buffer.get());
-  }
-  else if(strcmp(action,"PUT") == 0)
+	std::cerr<<"sendto\n";
+	std::exit(1);
+  }	
+  //recieve value strlen(cmd) determins the number of bytes to wait for and must be coordinated with what the server sends
+  if ((numbytes = recv(sockfd, packet, strlen(packet), 0)) == -1) 
   {
-	//send key
-	
-	//if key exists
-	
-	//set value
+	std::cerr<<"recv\n";
+	std::exit(1);
   }
-  else if(strcmp(action,"DELETE") == 0)
-  {
-	//send key
-	
-	//if key exists
-	
-	//delete value
-  }
+  packet[numbytes] = '\0';
+  printf("client: received '%s'\n", packet);
   close(sockfd);
   return 0;
 }

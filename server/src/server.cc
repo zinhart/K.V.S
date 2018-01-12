@@ -106,7 +106,8 @@ void server::run()
 		  else 
 		  {
 			// when recv returns <= 0 data stopped being recieved or their was an error with recv
-			if ((nbytes = recv(current_file_descriptor, message_buffer.get(), sizeof(message_buffer.get()), 0)) <= 0) 
+			std::cout<<
+			if ((nbytes = recv(current_file_descriptor, message_buffer.get(), strlen(message_buffer.get()) - 1, 0)) <= 0) 
 			{
 			  // got error or connection closed by client
 			  if (nbytes == 0) 
@@ -123,18 +124,39 @@ void server::run()
 			} 
 			else 
 			{
-			  printf("Data from client: %s \n", message_buffer.get());
+			  printf("COMMAND from client: %s \n", message_buffer.get());
+			  if(strcmp(message_buffer.get(),"GET" ) ==  0 )
+			  {
+			  }
+			  else if(strcmp(message_buffer.get(),"PUT" ) ==  0 )
+			  {
+			  }
+			  else if(strcmp(message_buffer.get(),"PATCH" ) ==  0 )
+			  {
+			  }
+			  else if(strcmp(message_buffer.get(),"POST" ) ==  0 )
+			  {
+			  }
+			  else if(strcmp(message_buffer.get(),"DELETE" ) ==  0 )
+			  {
+			  }
+			  else
+			  {
+				std::cerr<<"INVALID COMMAND\n";
+				//continue; not yet
+			  }
 			  // we got some data from a client
 			  for(j = 0; j <= fdmax; j++) 
 			  {
 				//if the current file descriptor (j) is in the master set
 				if (FD_ISSET(j, &master)) 
 				{
+				  std::cout<<"here\n";
 				  //j == litsener is the master socket j==i is the current open connection
-				  if (/*j == listener &&*/ j == current_file_descriptor) 
+				  if (j == current_file_descriptor) 
 				  {
-														std::cout<<"Here in send\n";
-					if (send(j, message_buffer.get(), nbytes, 0) == -1) 
+					std::cout<<"Here in send\n";
+					if (send(j, message_buffer.get(), sizeof(message_buffer.get()), 0) == -1) 
 					{
 					  perror("send");
 					}
@@ -146,14 +168,39 @@ void server::run()
 		}//end ne incoming connection
 	  }//end loop file descriptors
 	}//end for
-
+}
+//resources(keys)
+void server::get()//return all keys
+{
+}
+void server::put(std::multimap<std::shared_ptr<char>, std::shared_ptr<char>> & another_database)// replace all keys and values with another set
+{
+}
+void server::post(std::shared_ptr<char> & key)//create a new key
+{
+}
+void server::erase()//delete all keys
+{
+}
+//elements
+void server::get(std::shared_ptr<char> & key)//returns all values associated with key
+{
+}
+void server::put(std::shared_ptr<char> & key, std::shared_ptr<char> & value) //replace the value associated with this key or create a key with this value
+{
+}
+void server::patch(std::shared_ptr<char> & key, std::shared_ptr<char> & value)
+{
+}
+void server::erase(std::shared_ptr<char> & key, std::shared_ptr<char> & value)//delete a value associated with a key
+{
 }
 
 int main(int argc, char **argv)
 {
   if(argc <= 3)
   {
-	std::cout<<"Usage ./server <PORTNUM> <MESSAGELENGTH> <MAXCONNECTIONS>\n";
+	std::cout<<"Usage ./server <PORTNUM> <MAXCONNECTIONS> <MESSAGELENGTH> \n";
 	std::exit(1);
   }
   else
@@ -164,7 +211,7 @@ int main(int argc, char **argv)
  	message_length = std::atoi(argv[2]);	
  	max_connections = std::atoi(argv[3]);	
  	server s(port, max_connections, message_length );
-		s.run();
+	s.run();
   }
   
   return 0;

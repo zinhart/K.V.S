@@ -24,21 +24,21 @@ class server
 	std::int32_t fdmax;// maximum file descriptor number
 	std::int32_t listener; // listening socket descriptor
 	std::shared_ptr<char> message_buffer;
-	std::map<std::shared_ptr<char>, std::shared_ptr<char>> database;
+	std::multimap<std::shared_ptr<char>, std::shared_ptr<char>> database;
   public:
 	server(std::uint32_t port, std::uint32_t max_connections, std::uint32_t message_length);
 	void run();
 
 	//resources(keys)
 	void get();//return all keys
-	void put(	std::map<std::shared_ptr<char>, std::shared_ptr<char>> & another_database);// replace all keys and values with another set
+	void put(std::multimap<std::shared_ptr<char>, std::shared_ptr<char>> & another_database);// replace all keys and values with another set
 	void post(std::shared_ptr<char> & key);//create a new key
-	void delet();//delete all keys
+	void erase();//delete all keys
 	//elements
-	void get(std::shared_ptr<char> & key);
+	void get(std::shared_ptr<char> & key);//returns all values associated with key
 	void put(std::shared_ptr<char> & key, std::shared_ptr<char> & value); //replace the value associated with this key or create a key with this value
 	void patch(std::shared_ptr<char> & key, std::shared_ptr<char> & value);
-	void delet(std::shared_ptr<char> & key, std::shared_ptr<char> & value);//delete a value associated with a key
+	void erase(std::shared_ptr<char> & key, std::shared_ptr<char> & value);//delete a value associated with a key
 
 
 
