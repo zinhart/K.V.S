@@ -1,2 +1,3 @@
 # kvs
-key-value database written in c++ and c
+Migrating files from bitbucket.
+Newest code is on branch "migration from bitbucket"
